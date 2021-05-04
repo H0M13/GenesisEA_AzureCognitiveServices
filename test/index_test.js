@@ -1,27 +1,20 @@
 const assert = require("chai").assert;
 const performRequest = require("../index.js").performRequest;
-const sinon = require("sinon");
 require("dotenv").config();
-const Rekognition = require("node-rekognition");
 
-const createRekognitionStub = () =>
-  sinon.createStubInstance(Rekognition, {
-    detectModerationLabels: sinon.stub().returns({
-      ModerationLabels: [
-        {
-          Confidence: 99.92990112304688,
-          Name: "Middle Finger",
-          ParentName: "Rude Gestures"
-        },
-        {
-          Confidence: 99.92990112304688,
-          Name: "Rude Gestures",
-          ParentName: ""
-        }
-      ],
-      ModerationModelVersion: "4.0"
+const createVisionFake = () => ({
+  imageModeration: {
+    evaluateFileInput: imgBytes => ({
+      trackingId: "00a8564c-3b19-4492-82c1-6948486d21a0",
+      adultClassificationScore: 0.11061398684978485,
+      isImageAdultClassified: false,
+      racyClassificationScore: 0.9687211960554123,
+      isImageRacyClassified: true,
+      advancedInfo: [],
+      status: { code: 3000, description: "OK" }
     })
-  });
+  }
+});
 
 describe("performRequest", () => {
   const jobID = "1";
@@ -39,7 +32,7 @@ describe("performRequest", () => {
 
     requests.forEach(req => {
       it(`${req.name}`, done => {
-        var rekognitionStub = createRekognitionStub();
+        var visionStub = createVisionFake();
 
         performRequest({
           input: req.testData,
@@ -49,7 +42,7 @@ describe("performRequest", () => {
             assert.isNotEmpty(data.data);
             done();
           },
-          rekognition: rekognitionStub
+          contentModeratorApiClient: visionStub
         });
       });
     });

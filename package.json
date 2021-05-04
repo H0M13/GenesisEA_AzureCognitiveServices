@@ -10,8 +10,9 @@
   },
   "dependencies": {
     "@chainlink/external-adapter": "^0.2.6",
+    "azure-cognitiveservices-vision": "^2.0.0",
     "dotenv": "^8.2.0",
-    "node-rekognition": "^0.4.0"
+    "ms-rest-azure": "^3.0.0"
   },
   "devDependencies": {
     "body-parser": "^1.19.0",

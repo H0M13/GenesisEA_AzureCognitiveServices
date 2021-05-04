@@ -1,25 +1,28 @@
 const { Requester } = require("@chainlink/external-adapter");
-const Rekognition = require("node-rekognition");
+const Vision = require("azure-cognitiveservices-vision");
+const CognitiveServicesCredentials = require("ms-rest-azure")
+  .CognitiveServicesCredentials;
 const https = require("https");
 const Stream = require("stream").Transform;
 
 const createRequest = async (input, callback) => {
-  const AWSParameters = {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    region: process.env.AWS_REGION
-  };
+  const credentials = new CognitiveServicesCredentials(
+    process.env.CONTENT_MODERATOR_SUBSCRIPTION_KEY
+  );
 
-  const rekognition = new Rekognition(AWSParameters);
+  const contentModeratorApiClient = new Vision.ContentModeratorAPIClient(
+    credentials,
+    process.env.CONTENT_MODERATOR_ENDPOINT
+  );
 
   return performRequest({
     input,
     callback,
-    rekognition
+    contentModeratorApiClient
   });
 };
 
-const performRequest = ({ input, callback, rekognition }) => {
+const performRequest = ({ input, callback, contentModeratorApiClient }) => {
   const { data, id: jobRunID } = input;
 
   if (!data) {
@@ -56,13 +59,19 @@ const performRequest = ({ input, callback, rekognition }) => {
 
       const requestModerationLabels = async imgBytes => {
         try {
-          const moderationLabels = await rekognition.detectModerationLabels(
+          const moderationLabels = await contentModeratorApiClient.imageModeration.evaluateFileInput(
             imgBytes
           );
 
-          const convertedResult = convertLabelsToTrueSightFormat(
-            moderationLabels.ModerationLabels
-          );
+          const {
+            adultClassificationScore,
+            racyClassificationScore
+          } = moderationLabels;
+
+          const convertedResult = convertLabelsToTrueSightFormat({
+            adultScore: adultClassificationScore,
+            racyScore: racyClassificationScore
+          });
 
           const response = {
             data: moderationLabels
@@ -83,37 +92,21 @@ const performRequest = ({ input, callback, rekognition }) => {
   }
 };
 
-const getConfidenceForLabel = (labelsData, labelToFind) => {
-  const matchingLabels = labelsData.filter(
-    label => label.Name.toLowerCase() === labelToFind.toLowerCase()
-  );
-
-  // Rekognition is able to determine all of the labels in our results format
-  // so a missing label indicates some confidence the label does not exist.
-  // => Return a 0 score instead of null
-  if (!matchingLabels || matchingLabels.length === 0) {
-    return 0;
-  }
-
-  return Math.round(parseFloat(matchingLabels[0].Confidence));
+const getConfidenceFromScore = decimalScore => {
+  const asPercentage = decimalScore * 100;
+  return Math.round(parseFloat(asPercentage));
 };
 
-const convertLabelsToTrueSightFormat = labels => {
-  const adultConfidence = getConfidenceForLabel(labels, "Explicit Nudity");
-  const suggestiveConfidence = getConfidenceForLabel(labels, "Suggestive");
-  const violenceConfidence = getConfidenceForLabel(labels, "Violence");
-  const visuallyDisturbingConfidence = getConfidenceForLabel(labels, 
-    "Visually Disturbing"
-  );
-  const hateSymbolsConfidence = getConfidenceForLabel(labels, "Hate Symbols");
+/**
+ * Azure Cognitive Services provides results with decimal confidence scores between 0 and 1
+ * @param {number} adultScore The confidence score for adult content
+ * @param {number} racyScore The confidence score for racy content
+ */
+const convertLabelsToTrueSightFormat = ({ adultScore, racyScore }) => {
+  const adultConfidence = getConfidenceFromScore(adultScore);
+  const suggestiveConfidence = getConfidenceFromScore(racyScore);
 
-  return [
-    adultConfidence,
-    suggestiveConfidence,
-    violenceConfidence,
-    visuallyDisturbingConfidence,
-    hateSymbolsConfidence
-  ].join(",");
+  return [adultConfidence, suggestiveConfidence, "", "", ""].join(",");
 };
 
 // This is a wrapper to allow the function to work with

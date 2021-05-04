@@ -1,16 +1,18 @@
-# TrueSight genesis external adapter - Amazon Rekognition
+# TrueSight genesis external adapter - Azure Cognitive Services
 
-This external adapter downloads image bytes from [IPFS](https://ipfs.io/) given the content hash and requests image moderation labels from the [Amazon Rekognition](https://aws.amazon.com/rekognition/) cloud-based computer vision platform.
+This external adapter downloads image bytes from [IPFS](https://ipfs.io/) given the content hash and requests image moderation labels from [Azure Cognitive Services](https://azure.microsoft.com/en-gb/services/cognitive-services/) cloud-based computer vision platform.
+
+See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/cognitive-services/content-moderator/image-moderation-api#evaluating-for-adult-and-racy-content) for the result format of the Cognitive Services API
 
 ## Environment variables
 
-You will need an AWS account to be able to make requests to Amazon Rekognition. See [Amazon's documentation](https://aws.amazon.com/premiumsupport/knowledge-center/create-and-activate-aws-account/) for help on setting up an account.
+You will need an Azure account to be able to make requests to the service. See [Microsoft's documentation](https://docs.microsoft.com/en-us/azure/cognitive-services/content-moderator/client-libraries?tabs=visual-studio&pivots=programming-language-rest-api) for help on getting started
 
-| Variable                |              | Description                          |            Example             |
-| ----------------------- | :----------: | ------------------------------------ | :----------------------------: |
-| `AWS_ACCESS_KEY_ID`     | **Required** | The ID of your AWS access key        |        `ABCDEFGABCDEFG`        |
-| `AWS_SECRET_ACCESS_KEY` | **Required** | Your AWS secret access key           | `AbCdEfGaBcDeFgAbCdEfGaBcDeFg` |
-| `AWS_REGION`            | **Required** | The AWS region you would like to use |          `eu-west-2`           |
+| Variable                             |              | Description                                   |                     Example                     |
+| ------------------------------------ | :----------: | --------------------------------------------- | :---------------------------------------------: |
+| `CONTENT_MODERATOR_SUBSCRIPTION_KEY` | **Required** | Your Azure Content Moderator subscription key |       `660daf63efc24de7660daf63efc24de7`        |
+| `CONTENT_MODERATOR_ENDPOINT`         | **Required** | Your Azure Content Moderator endpoint         | `https://endpoint.cognitiveservices.azure.com/` |
+| `IPFS_GATEWAY_URL`                   | **Required** | The IPFS gateway you would like to use        |                    `ipfs.io`                    |
 
 ## Example request
 
@@ -22,29 +24,21 @@ You will need an AWS account to be able to make requests to Amazon Rekognition. 
 
 ```json
 {
-  "jobRunID": 0,
-  "data": {
-    "ModerationLabels": [
-      {
-        "Confidence": 75.24210357666016,
-        "Name": "Suggestive",
-        "ParentName": ""
-      },
-      {
-        "Confidence": 75.24210357666016,
-        "Name": "Female Swimwear Or Underwear",
-        "ParentName": "Suggestive"
-      },
-      {
-        "Confidence": 74.70369720458984,
-        "Name": "Revealing Clothes",
-        "ParentName": "Suggestive"
-      }
-    ],
-    "ModerationModelVersion": "4.0",
-    "result": "0,75,0,0,0"
-  },
-  "result": "0,75,0,0,0"
+    "jobRunID": 0,
+    "data": {
+        "result": "11,97,,,",
+        "trackingId": "916ee61e-954f-4339-8daf-cdc70fa90028",
+        "adultClassificationScore": 0.11061398684978485,
+        "isImageAdultClassified": false,
+        "racyClassificationScore": 0.9687211960554123,
+        "isImageRacyClassified": true,
+        "advancedInfo": [],
+        "status": {
+            "code": 3000,
+            "description": "OK"
+        }
+    },
+    "result": "11,97,,,"
 }
 ```
 
