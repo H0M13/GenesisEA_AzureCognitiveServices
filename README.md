@@ -8,11 +8,12 @@ See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/cogniti
 
 You will need an Azure account to be able to make requests to the service. See [Microsoft's documentation](https://docs.microsoft.com/en-us/azure/cognitive-services/content-moderator/client-libraries?tabs=visual-studio&pivots=programming-language-rest-api) for help on getting started
 
-| Variable                             |              | Description                                   |                     Example                     |
-| ------------------------------------ | :----------: | --------------------------------------------- | :---------------------------------------------: |
-| `CONTENT_MODERATOR_SUBSCRIPTION_KEY` | **Required** | Your Azure Content Moderator subscription key |       `660daf63efc24de7660daf63efc24de7`        |
-| `CONTENT_MODERATOR_ENDPOINT`         | **Required** | Your Azure Content Moderator endpoint         | `https://endpoint.cognitiveservices.azure.com/` |
-| `IPFS_GATEWAY_URL`                   | **Required** | The IPFS gateway you would like to use        |                    `ipfs.io`                    |
+| Variable                             |              | Description                                                              |                     Example                     |
+| ------------------------------------ | :----------: | ------------------------------------------------------------------------ | :---------------------------------------------: |
+| `CONTENT_MODERATOR_SUBSCRIPTION_KEY` | **Required** | Your Azure Content Moderator subscription key                            |       `660daf63efc24de7660daf63efc24de7`        |
+| `CONTENT_MODERATOR_ENDPOINT`         | **Required** | Your Azure Content Moderator endpoint                                    | `https://endpoint.cognitiveservices.azure.com/` |
+| `IPFS_GATEWAY_URL`                   | **Required** | The IPFS gateway you would like to use                                   |                    `ipfs.io`                    |
+| `IPFS_GATEWAY_SSL`                   | **Optional** | Access the gateway via SSL (https)? True/false (Default behaviour: true) |                     `true`                      |
 
 ## Example request
 
@@ -24,21 +25,21 @@ You will need an Azure account to be able to make requests to the service. See [
 
 ```json
 {
-    "jobRunID": 0,
-    "data": {
-        "result": "11,97,,,",
-        "trackingId": "916ee61e-954f-4339-8daf-cdc70fa90028",
-        "adultClassificationScore": 0.11061398684978485,
-        "isImageAdultClassified": false,
-        "racyClassificationScore": 0.9687211960554123,
-        "isImageRacyClassified": true,
-        "advancedInfo": [],
-        "status": {
-            "code": 3000,
-            "description": "OK"
-        }
-    },
-    "result": "11,97,,,"
+  "jobRunID": 0,
+  "data": {
+    "result": "11,97,,,",
+    "trackingId": "916ee61e-954f-4339-8daf-cdc70fa90028",
+    "adultClassificationScore": 0.11061398684978485,
+    "isImageAdultClassified": false,
+    "racyClassificationScore": 0.9687211960554123,
+    "isImageRacyClassified": true,
+    "advancedInfo": [],
+    "status": {
+      "code": 3000,
+      "description": "OK"
+    }
+  },
+  "result": "11,97,,,"
 }
 ```
 
